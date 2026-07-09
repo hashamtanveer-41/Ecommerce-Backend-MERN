@@ -1,9 +1,15 @@
 import {productModel} from "../models/productModal.js";
 import ErrorHandler from "../utils/errorHandler.js";
+import asyncError from "../middlewares/catchAsyncError.js";
+import ApiFeatures from "../utils/apiFeatures.js";
 
-export const getAllProducts = async (req, res, next)=>{
-    const products = await productModel.find({});
+export const getAllProducts = asyncError(async (req, res, next)=>{
 
+    const apiFeatures = new ApiFeatures(productModel.find(), req.query)
+        .search()
+        .filter();
+
+    const products = await apiFeatures.query;
     if (!products){
         return next(new ErrorHandler("Product Not found", 404))
     }
@@ -11,16 +17,16 @@ export const getAllProducts = async (req, res, next)=>{
         success:true,
         products
 })
-}
-export const createProduct = async (req, res, next)=>{
+})
+export const createProduct = asyncError(async (req, res, next)=>{
     const product = await productModel.create(req.body);
     res.status(201).json({
         success:true,
         product
     })
-}
+})
 
-export const updateProduct =async (req, res, next)=>{
+export const updateProduct =asyncError(async (req, res, next)=>{
     const id = req.params.id;
     let product = await productModel.findById(id)
     if (!product){
@@ -36,9 +42,9 @@ export const updateProduct =async (req, res, next)=>{
         success: true,
         product
     })
-}
+})
 
-export const deleteProduct =async (req, res, next) =>{
+export const deleteProduct =asyncError(async (req, res, next) =>{
     const product = await productModel.findById(req.params.id)
     if (!product){
         return next(new ErrorHandler("Product Not found", 404))
@@ -48,15 +54,15 @@ export const deleteProduct =async (req, res, next) =>{
         success: true,
         message: "Product Deleted Successfully"
     })
-}
+})
 
-export const productDetails = async (req, res, next) =>{
+export const productDetails = asyncError(async (req, res, next) =>{
     const product = await productModel.findById(req.params.id)
     if (!product){
-            return next(new ErrorHandler("Product Not found", 404))
+        return next(new ErrorHandler("Product Not found", 404))
     }
     return res.status(200).json({
         success: true,
         product
     })
-}
+})
